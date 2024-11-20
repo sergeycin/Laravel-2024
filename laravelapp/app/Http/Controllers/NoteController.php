@@ -12,7 +12,7 @@ class NoteController extends Controller
      */
     public function index()
     {   
-        $notes = Note::query()->orderBy('created_at', 'desc')->paginate(15);
+        $notes = Note::query()->where('user_id', request()->id)->orderBy('created_at', 'desc')->paginate(15);
         return view('note.index', ['notes' => $notes]);
     }
 
@@ -33,7 +33,7 @@ class NoteController extends Controller
             'note' => ['required','string'],
         ]);
 
-        $data['user_id'] = 1;
+        $data['user_id'] = $request->user()->id;
         $note = Note::create($data);
 
         return to_route('note.show', $note)->with('message', 'Note was created');
@@ -43,7 +43,10 @@ class NoteController extends Controller
      * Display the specified resource.
      */
     public function show(Note $note)
-    {
+    {   
+        if($note->user_id !== request()->user()->id){
+            abort(403);
+        }
         return view('note.show', ['note' => $note]);
     }
 
